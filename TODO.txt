@@ -1,0 +1,6 @@
+Rebuild with python scrapper
+    - use numpy (numpy.random.*)
+    - overhaul/do README.md
+    - User latex to make paper explaining process of probability calulations using:
+        - Geometric distributions/Poisson Distributions
+        - MLE parameter estimation (Maximum Likelihood Estimate)
