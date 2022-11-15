@@ -1,6 +1,7 @@
-Rebuild with python scrapper
+Rebuild with python
     - use numpy (numpy.random.*)
     - overhaul/do README.md
-    - User latex to make paper explaining process of probability calulations using:
+    - Create script to read in scraped data in json files and preform the necessary calulations
+    - Use latex to make paper explaining process of probability calulations using:
         - Geometric distributions/Poisson Distributions
         - MLE parameter estimation (Maximum Likelihood Estimate)
