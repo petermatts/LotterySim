@@ -48,21 +48,25 @@ def scrape():
 
                 for m in range(1, len(MB)+1):
                     hist = list(MB[m-1])
+                    # hist = list(MB[str(m)])
                     if m in mb:
                         hist.append(1)
                         MB[m-1] = hist
                     else:
                         hist.append(0)
                         MB[m-1] = hist
+                    # MB[str(m)] = hist
 
                 for p in range(1, len(PB)+1):
                     hist = list(PB[p-1])
+                    # hist = list(PB[str(p)])
                     if p == powerball:
                         hist.append(1)
                         PB[p-1] = hist
                     else:
                         hist.append(0)
                         PB[p-1] = hist
+                    # PB[str(p)] = hist
 
         # print(MB)
         # print(PB)

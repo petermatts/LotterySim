@@ -1,7 +1,6 @@
 Rebuild with python
-    - use numpy (numpy.random.*)
     - overhaul/do README.md
-    - Create script to read in scraped data in json files and preform the necessary calulations
+    - Use matplotlib.pyplot.table to display tables instead of using csvs?
     - Use latex to make paper explaining process of probability calulations using:
         - Geometric distributions/Poisson Distributions
         - MLE parameter estimation (Maximum Likelihood Estimate)
