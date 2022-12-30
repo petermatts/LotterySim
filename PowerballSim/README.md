@@ -1,3 +1,5 @@
+No longer supported, please see the src directory.
+
 ## Getting Started
 
 Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.

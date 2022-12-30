@@ -1,6 +1,7 @@
 Rebuild with python
     - overhaul/do README.md
     - Use matplotlib.pyplot.table to display tables instead of using csvs?
+    - Separate code into folder for powerball (existing work) and MegaMillions (not started yet)
     - Use latex to make paper explaining process of probability calulations using:
         - Geometric distributions/Poisson Distributions
         - MLE parameter estimation (Maximum Likelihood Estimate)
