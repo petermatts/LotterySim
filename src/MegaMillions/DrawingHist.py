@@ -3,24 +3,24 @@ from bs4 import BeautifulSoup
 import json
 import datetime
 
-# NOTE powerball ball pool changed on 10/7/2015
+# NOTE megamillions ball pool changed on 10/31/2017
 # all scraping is from the drawing on that day to present
 def scrape():
-    startDate = [10, 7, 2015]
+    startDate = [10, 31, 2017]
     startyear = startDate[2]
     year = datetime.date.today().year
     # print(year)
 
-    WHITEBALLS = 69
-    REDBALLS = 26
+    WHITEBALLS = 70
+    REDBALLS = 25
 
-    MB = [[]]*WHITEBALLS
-    PB = [[]]*REDBALLS
+    WB = [[]]*WHITEBALLS
+    MB = [[]]*REDBALLS
 
     dates = [] 
     for i in range(startyear, year+1):
-        r = requests.get('https://www.lottodatabase.com/lotto-database/american-lotteries/powerball/draw-history/'+str(i))
-        print('https://www.lottodatabase.com/lotto-database/american-lotteries/powerball/draw-history/'+str(i))
+        r = requests.get('https://www.lottodatabase.com/lotto-database/american-lotteries/megamillions/draw-history/'+str(i))
+        print('https://www.lottodatabase.com/lotto-database/american-lotteries/megamillions/draw-history/'+str(i))
         data = BeautifulSoup(r.text, 'html.parser')
 
         datesData = data.select(".col.s_3_12") # parallel
@@ -31,7 +31,7 @@ def scrape():
         # print(drawingsData)
 
         # print(len(drawings['mainballs']))
-        # print(len(drawings['powerballs']))
+        # print(len(drawings['megaballs']))
 
 
         for j in range(len(datesData)):
@@ -40,43 +40,43 @@ def scrape():
 
                 draw = BeautifulSoup(str(drawingsData[j]), 'html.parser')
                 mainballs = draw.select(".white.ball")
-                powerball = int(draw.select(".red.ball")[0].text.replace('Powerball', ''))
+                megaball = int(draw.select(".gold.ball")[0].text.replace('MegaBall', ''))
 
                 mb = []
                 for k in range(len(mainballs)):
                     mb.append(int(mainballs[k].text))
                 # print(mb)
 
-                # print(powerball)
+                # print(megaball)
 
-                for m in range(1, len(MB)+1):
-                    hist = list(MB[m-1])
-                    # hist = list(MB[str(m)])
+                for m in range(1, len(WB)+1):
+                    hist = list(WB[m-1])
+                    # hist = list(WB[str(m)])
                     if m in mb:
                         hist.append(1)
-                        MB[m-1] = hist
+                        WB[m-1] = hist
                     else:
                         hist.append(0)
-                        MB[m-1] = hist
-                    # MB[str(m)] = hist
+                        WB[m-1] = hist
+                    # WB[str(m)] = hist
 
-                for p in range(1, len(PB)+1):
-                    hist = list(PB[p-1])
-                    # hist = list(PB[str(p)])
-                    if p == powerball:
+                for p in range(1, len(MB)+1):
+                    hist = list(MB[p-1])
+                    # hist = list(MB[str(p)])
+                    if p == megaball:
                         hist.append(1)
-                        PB[p-1] = hist
+                        MB[p-1] = hist
                     else:
                         hist.append(0)
-                        PB[p-1] = hist
-                    # PB[str(p)] = hist
+                        MB[p-1] = hist
+                    # MB[str(p)] = hist
 
+        # print(WB)
         # print(MB)
-        # print(PB)
 
     return {
-        'mainballs': MB,
-        'powerballs': PB
+        'mainballs': WB,
+        'megaballs': MB
     }, dates
 
 
@@ -133,17 +133,14 @@ def printBalls(data: list, title: str):
         print(i+1, data[i])
 
 def DetailedPrint(drawings: dict):
-    printBalls(drawings['powerballs'], 'Powerballs')
+    printBalls(drawings['megaballs'], 'Megaballs')
     printBalls(drawings['mainballs'], 'Mainballs')
 
 if __name__ == '__main__':
     data, dates = scrape()
 
     # DetailedPrint(data)
-
     # print(dates)
-
-    # print(isOnOrAfter([10,6,2022],[10,7,2015]))
 
     with open("History.json", "w") as outfile:
         json.dump(data, outfile, indent=4)
