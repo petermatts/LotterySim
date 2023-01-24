@@ -6,7 +6,6 @@ def timesSinceLastDraw():
     mb = {}
     pb = {}
 
-    # if history['mainballs'] exits
     x = 1
     for i in history['mainballs']:
         tmp = i
@@ -15,14 +14,13 @@ def timesSinceLastDraw():
         x +=1
 
     x = 1
-    # if history['powerballs'] exits
-    for i in history['powerballs']:
+    for i in history['megaballs']:
         tmp = i
         tmp.reverse()
         pb[str(x)] = tmp.index(1)
         x += 1
 
-    return {'mainballs': mb, 'powerballs': pb}
+    return {'mainballs': mb, 'megaballs': pb}
 
 def analyze():
     recency = timesSinceLastDraw()
@@ -44,9 +42,9 @@ def analyze():
         x += 1
 
     x = 1
-    for i in list(recency['powerballs'].keys()):
-        r = recency['powerballs'][i]
-        p = float(freq['powerballs'][i])/float(freq['numdraws'])
+    for i in list(recency['megaballs'].keys()):
+        r = recency['megaballs'][i]
+        p = float(freq['megaballs'][i])/float(freq['numdraws'])
         # prob = geomPDF(p, r)
         prob = geomCDF(p, r)
         exp = geomEXPECTED(p)
@@ -54,7 +52,7 @@ def analyze():
         x += 1
 
     writeCSV("mainball.csv", mb, format, True)
-    writeCSV("powerball.csv", pb, format, True)
+    writeCSV("megaball.csv", pb, format, True)
 
 
 def writeCSV(filename, data, format, sorted=False):
