@@ -1,5 +1,9 @@
 # LotterySim
 
+## Disclaimer
+
+If anyone uses this repo and wins they would owe a cut to the creator of this project for helping them win. :)
+
 ## Running PowerBall
 
 ### Scraping the Drawing Data
