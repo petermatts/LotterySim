@@ -26,17 +26,17 @@ def scrape():
     for i in mainballData:
         ball = BeautifulSoup(str(i), 'html.parser').select(".ball.inline")[0].text
         freq = BeautifulSoup(str(i), 'html.parser').strong.text
-        MB[ball] = freq.split(' ')[1]
+        MB[ball] = int(freq.split(' ')[1])
 
     for i in powerballData:
         ball = BeautifulSoup(str(i), 'html.parser').select(".powerball.inline")[0].text
         freq = BeautifulSoup(str(i), 'html.parser').strong.text
-        PB[ball] = freq.split(' ')[1]
+        PB[ball] = int(freq.split(' ')[1])
 
     for i in powerplayData:
         play = BeautifulSoup(str(i), 'html.parser').select(".power-play.inline")[0].text
         freq = BeautifulSoup(str(i), 'html.parser').strong.text
-        PP[play] = freq.split(' ')[1]
+        PP[play] = int(freq.split(' ')[1])
 
     # print(MB)
     # print(PB)
