@@ -1,3 +1,7 @@
 **/__pycache__
 **/*.egg-info
 **/*.csv
+
+**/Frequencies.json
+**/History.json
+**/Data

@@ -1,7 +1,0 @@
-Rebuild with python
-    - overhaul/do README.md
-    - Use matplotlib.pyplot.table to display tables instead of using csvs?
-    - add column to csvs to display frequency of the ball
-    - Use latex to make paper explaining process of probability calulations using:
-        - Geometric distributions/Poisson Distributions
-        - MLE parameter estimation (Maximum Likelihood Estimate)
