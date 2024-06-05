@@ -1,0 +1,1 @@
+Link to make gif out of a series of PyPlot images: https://ransakaravihara.medium.com/how-to-create-gifs-using-matplotlib-891989d0d5ea

@@ -47,7 +47,7 @@ def scrape():
         'mainballs': MB,
         'powerballs': PB,
         'powerplays': PP,
-        'numdraws': drawcount
+        'numdraws': int(drawcount.replace(',', ''))
     }
 
 if __name__ == '__main__':
