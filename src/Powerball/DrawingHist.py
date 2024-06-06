@@ -146,4 +146,5 @@ if __name__ == '__main__':
     # print(isOnOrAfter([10,6,2022],[10,7,2015]))
 
     with open("History.json", "w") as outfile:
-        json.dump(data, outfile, indent=4)
+        hist = json.dumps(data, indent=4).replace('\n            ',  '').replace('\n        ]', ']')
+        outfile.write(hist)

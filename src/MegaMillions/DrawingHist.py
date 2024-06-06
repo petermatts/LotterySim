@@ -143,4 +143,5 @@ if __name__ == '__main__':
     # print(dates)
 
     with open("History.json", "w") as outfile:
-        json.dump(data, outfile, indent=4)
+        hist = json.dumps(data, indent=4).replace('\n            ',  '').replace('\n        ]', ']')
+        outfile.write(hist)
