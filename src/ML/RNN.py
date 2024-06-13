@@ -20,8 +20,10 @@ class RNN(torch.nn.Module):
         self.lin = torch.nn.Linear(hidden_size, output_size, device=device)
         self.sm = torch.nn.Softmax()
 
-    def forward(self, X: torch.Tensor):
-        pass
+        self.model = torch.nn.Sequential()
+
+    def forward(self, X: torch.Tensor) -> torch.Tensor:
+        return self.model(X)
 
     def predict(self, X: torch.Tensor):
         num = 5 if self.balltype == 'mainball' else 1

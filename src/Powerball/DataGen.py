@@ -39,12 +39,12 @@ def makeDataCSV():
         f.writelines(output)
 
 
-def generateTrainTestData(savefile: str, lookback: int, validate: float = 0.2, test: float = 0.1, randTest: int = 100):
+def generateTrainTestData(savefile: str, lookback: int, validate: float = 0.1, test: float = 0.1, randTest: int = 100):
     """
     @param savefile (required) relative or absolute path to save data, must be a .npy or .npz file
     @param lookback (required) number of datapoints to look back when collecting data sequentially
     @param validate (optional) float variable indicating the percentage of train data to be used for validation
-                    default: 0.2
+                    default: 0.1
     @param test     (optional) float variable indicating the percentage of data to be used for testing
                     default: 0.1
     @param randTest (optional) integer variable specifying the size of the randomly generated test data

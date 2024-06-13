@@ -1,0 +1,11 @@
+- update DataGen.py to write to specified directory
+- create a DataGen.py for MegaMillions (or just generalize it into the ML folder)
+
+- implement preliminary versions of models
+- finish model saving infrastructure
+- when saving model create yaml file of the specs of the model (hyperparams and settings)
+- save params of best epoch
+- save graphs
+    - make gif based on this link for fun: https://ransakaravihara.medium.com/how-to-create-gifs-using-matplotlib-891989d0d5ea
+- create infrastructure for getting the next drawing prediction from trained model
+- create a master csv file of model metrics so look up of best saved model is easy
