@@ -1,5 +1,7 @@
 import argparse
+import os
 from datetime import datetime
+from DataGen import *
 
 def configName(args: argparse.Namespace) -> str:
     """Returns a string representation of the model configuration, and current date"""
@@ -30,6 +32,44 @@ def configName(args: argparse.Namespace) -> str:
         return args.modelname
 
 
+def train():
+    pass # function to run training
+
+def validate():
+    pass # function to perform validation
+
+def test():
+    pass # function to perform testing
+
+def makeModel(args: argparse.Namespace):
+    # construct model definition and call train/validate/test
+    # create model folder for saving data and model config.yaml or specs.yaml (havent decided on a name yet)
+    if args.evaluate:
+        pass
+    else:
+        if not os.path.exists("Models"):
+            os.mkdir("Models")
+
+        modelname = args.modelname if args.modelname is not None else configName(args)
+        os.mkdir("Models/%s"%modelname)
+        os.mkdir("Models/%s/Data"%modelname)
+
+        # Make the data for the model
+        assert args.lookback is not None
+        datapath = "Models/%s/Data/"%modelname
+        datafile = "data%d.npz"%args.lookback
+        if args.powerball:
+            generateTrainTestData('powerball', datapath, datafile, args.lookback, args.split[1], args.split[2])
+        elif args.megamillions:
+            generateTrainTestData('megamillions', datapath, datafile, args.lookback, args.split[1], args.split[2])
+        else:
+            raise ValueError("Must specify a Lottery Type")
+
+        #todo keep going with model setup
+
+
+
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -55,12 +95,17 @@ if __name__ == '__main__':
     ball.add_argument('-sb', '--specialball', type=bool, nargs='?', const=True, default=False, help="Selects model over the specified lottery special balls")
 
     # data args
-    parser.add_argument('--split', nargs=3, type=int, help="3 int inputs, for training, validation, and test split percentages in that order. Must sum to 100. If unspecified default will be 80,10,10") #?
-
+    parser.add_argument('--split', nargs=3, type=int, default=[80,10,10], help="3 int inputs, for training, validation, and test split percentages in that order. Must sum to 100. If unspecified default will be 80,10,10") #?
+    parser.add_argument('--lookback', type=int, default = 10, help="The number of datapoints to lookback in a time series")
+    parser.add_argument('--randtest', type=int, nargs='?', default=100, help="Number of random test data points to make, only used if test split is 0")
+    
     # model args/hyperparameter args #todo
 
 
-####################################################################################################
+
+
+    ################################################################################################
     args = parser.parse_args()
     # print(args)
-    print(configName(args))
+    # print(configName(args))
+    makeModel(args)

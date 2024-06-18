@@ -12,15 +12,25 @@ class RNN(torch.nn.Module):
         @param num_layers: int = number of RNN layers
         @param balltype: str = 'mainball' or 'specialball'
         """
+        super(RNN, self).__init__()
 
         self.balltype = balltype
-        self.output_size = output_size
+        # self.output_size = output_size
 
         self.rnn = torch.nn.RNN(input_size, hidden_size, nonlinearity=nonlinearity, num_layers=num_layers, device=device)
         self.lin = torch.nn.Linear(hidden_size, output_size, device=device)
         self.sm = torch.nn.Softmax()
 
         self.model = torch.nn.Sequential()
+
+    def save(self, path: str):
+        assert path.endswith('.pt')
+        torch.save(self.state_dict(), path)
+
+    def load(self, path: str):
+        assert path.endswith('.pt')
+        torch.load(path)
+        self.to(device)
 
     def forward(self, X: torch.Tensor) -> torch.Tensor:
         return self.model(X)
@@ -35,3 +45,8 @@ class RNN(torch.nn.Module):
 
     def learn(self):
         pass
+
+
+if __name__ == '__main__':
+    model = RNN(10, 26, 26)
+    model.save()
