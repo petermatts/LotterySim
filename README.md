@@ -10,15 +10,15 @@ If anyone uses this repo and wins they would owe a cut to the creator of this pr
 
 From the directory ```/src/Powerball``` run ```.\scrape.bat``` (Windows only for now, MacOS will be ```./scrape.command``` or ```./scrape.sh```) 
 
-Or from that directory manually run ```python3 DrawingFreq.py``` and ```python3 DrawingHist.py```
+Or from that directory manually run ```python DrawingFreq.py``` and ```python DrawingHist.py```
 
 ### Running the Analysis
 
-```python3 Analysis.py```
+```python Analysis.py```
 
 This will out put numbers to CSV files in accordance to their geometic probabilities based on when they were last drawn.
 
-The files are called ```mainball.csv``` for the main balls and ```poewrball.csv``` for the powerballs.
+The files are called ```mainball.csv``` for the main balls and ```powerball.csv``` for the powerballs.
 
 ## Running MegaMillions
 

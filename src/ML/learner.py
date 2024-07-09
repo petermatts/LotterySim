@@ -1,5 +1,6 @@
 import argparse
 import os
+import yaml
 from datetime import datetime
 from DataGen import *
 
@@ -32,6 +33,10 @@ def configName(args: argparse.Namespace) -> str:
         return args.modelname
 
 
+def configSpecs(args: argparse.Namespace):
+    pass# save model specs to a yaml file
+
+
 def train():
     pass # function to run training
 
@@ -41,31 +46,37 @@ def validate():
 def test():
     pass # function to perform testing
 
+def predictNextNumbers():
+    pass
+    # this function will fetch the latest lottery data and run the numbers to get the most likely next lottery numbers according to the model
+
 def makeModel(args: argparse.Namespace):
-    # construct model definition and call train/validate/test
-    # create model folder for saving data and model config.yaml or specs.yaml (havent decided on a name yet)
     if args.evaluate:
-        pass
+        pass # todo
     else:
         if not os.path.exists("Models"):
             os.mkdir("Models")
 
         modelname = args.modelname if args.modelname is not None else configName(args)
-        os.mkdir("Models/%s"%modelname)
-        os.mkdir("Models/%s/Data"%modelname)
+        try:
+            os.mkdir("Models/%s"%modelname)
+            os.mkdir("Models/%s/Data"%modelname)
 
-        # Make the data for the model
-        assert args.lookback is not None
-        datapath = "Models/%s/Data/"%modelname
-        datafile = "data%d.npz"%args.lookback
-        if args.powerball:
-            generateTrainTestData('powerball', datapath, datafile, args.lookback, args.split[1], args.split[2])
-        elif args.megamillions:
-            generateTrainTestData('megamillions', datapath, datafile, args.lookback, args.split[1], args.split[2])
-        else:
-            raise ValueError("Must specify a Lottery Type")
+            # Make the data for the model
+            assert args.lookback is not None
+            datapath = "Models/%s/Data/"%modelname
+            datafile = "data%d.npz"%args.lookback
+            if args.powerball:
+                generateTrainTestData('powerball', datapath, datafile, args.lookback, args.split[1], args.split[2])
+            elif args.megamillions:
+                generateTrainTestData('megamillions', datapath, datafile, args.lookback, args.split[1], args.split[2])
+            else:
+                raise ValueError("Must specify a Lottery Type")
 
-        #todo keep going with model setup
+            #todo keep going with model setup
+        except:
+            # todo failed setup, remove model directory
+            pass 
 
 
 
