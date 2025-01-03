@@ -4,9 +4,13 @@
 
 If anyone uses this repo and wins they would owe a cut to the creator of this project for helping them win. :)
 
-## Running PowerBall
+## Running
 
-### Scraping the Drawing Data
+TODO, code is under a major refactor currently.
+
+<!-- ## Running PowerBall -->
+
+<!-- ### Scraping the Drawing Data
 
 From the directory ```/src/Powerball``` run ```.\scrape.bat``` (Windows only for now, MacOS will be ```./scrape.command``` or ```./scrape.sh```) 
 
@@ -22,4 +26,4 @@ The files are called ```mainball.csv``` for the main balls and ```powerball.csv`
 
 ## Running MegaMillions
 
-MegaMillions code and analysis has not yet been implemented. Come back soon.
+MegaMillions code and analysis has not yet been implemented. Come back soon. -->
