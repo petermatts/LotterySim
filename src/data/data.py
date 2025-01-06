@@ -1,4 +1,11 @@
 import argparse
+import os
+import glob
+from pathlib import Path
+
+from functions import scrape, generateHistDict, generateFreqDict
+
+DATAPATH = (Path(__file__).parent / "../../Data").resolve()
 
 # make args
 parser = argparse.ArgumentParser()
@@ -9,18 +16,25 @@ lotto_type.add_argument("--powerball", action='store_true', help="Gather data fo
 args = vars(parser.parse_args())
 
 if args['megamillions']:
-    from megamillions import scrape, generateHistDict, generateFreqDict
-# elif args['powerball']:
-#     from powerball import scrape, generateFreqDict
+    from megamillions import WHITEBALLS, REDBALLS, URL, START
+    DATAPATH = DATAPATH / "MegaMillions"
+elif args['powerball']:
+    from powerball import WHITEBALLS, REDBALLS, URL, START
+    DATAPATH = DATAPATH / "Powerball"
 # add additional lotteries here
 
+print("Removing Old Data")
+old_data = glob.glob(str(DATAPATH / "*"))
+for f in old_data:
+    os.remove(f)
+
 print("Gathering Data:")
-scrape()
+scrape(DATAPATH, URL, START)
 
 print("\nGenerating History Dictionary")
-generateHistDict()
+generateHistDict(DATAPATH, WHITEBALLS, REDBALLS)
 
 print("\nGenerating Frequency Dictionary")
-generateFreqDict()
+generateFreqDict(DATAPATH, WHITEBALLS, REDBALLS)
 
 print("\nDone.")
