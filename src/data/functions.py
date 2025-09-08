@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import json
-import datetime
+from datetime import date, datetime
 import numpy as np
 import os
 from pandas import read_csv
@@ -13,9 +13,9 @@ def scrape(datapath: os.PathLike, link: str, start_date: list = [0,0,0]) -> None
     Scrapes Powerball drawing data. 
     """
     startyear = start_date[2]
-    year = datetime.date.today().year
+    year = date.today().year
 
-    RAW = "B1,B2,B3,B4,B5,SB\n" # may need to make adaptable in the future
+    RAW = "B1,B2,B3,B4,B5,SB,Date (dd-mm-yyyy)\n" #? may need to make adaptable in the future
 
     for i in range(startyear, year+1):
         url = f"{link}{i}"
@@ -31,6 +31,7 @@ def scrape(datapath: os.PathLike, link: str, start_date: list = [0,0,0]) -> None
             if isOnOrAfter(formatDate(datesData[j].text), start_date):
                 draw = BeautifulSoup(str(drawingsData[j]), 'html.parser')
                 mainballs = draw.select(".white.ball")
+                drawing_date = datetime.strptime(datesData[j].text, "%A, %B %d, %Y").strftime("%d-%m-%Y")
 
                 if "powerball" in link:
                     specialball = int(draw.select(".red.ball")[0].text.replace('Powerball', ''))
@@ -41,7 +42,7 @@ def scrape(datapath: os.PathLike, link: str, start_date: list = [0,0,0]) -> None
                 for k in range(len(mainballs)):
                     mb.append(int(mainballs[k].text))
 
-                RAW += ",".join(map(lambda n: f"{n :>2}", mb)) + f",{specialball :>2}\n"
+                RAW += ",".join(map(lambda n: f"{n :>2}", mb)) + f",{specialball :>2},{drawing_date}\n"
 
     os.makedirs(datapath, exist_ok=True)
 

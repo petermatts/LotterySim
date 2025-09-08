@@ -37,4 +37,4 @@ generateHistDict(DATAPATH, WHITEBALLS, REDBALLS)
 print("\nGenerating Frequency Dictionary")
 generateFreqDict(DATAPATH, WHITEBALLS, REDBALLS)
 
-print("\nDone.")
+print(f"\nDate written to {DATAPATH}\nDone.")
