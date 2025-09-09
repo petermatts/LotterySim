@@ -14,7 +14,7 @@ class Trainer:
                  val_loader: DataLoader = None,
                  optimizer: torch.optim.Optimizer = None,
                  scheduler=None,
-                 loss_fn: callable = None,
+                 loss_fn=None,
                  device: torch.device | str = None,
                  num_epochs: int = 10,
                  checkpoint_path: os.PathLike = None,
@@ -29,9 +29,7 @@ class Trainer:
         self.val_loader = val_loader
         self.optimizer = optimizer
         self.scheduler = scheduler
-        self.loss_fn = loss_fn or torch.nn.CrossEntropyLoss()
-        self.device = device or torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu")
+        self.device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.num_epochs = num_epochs
         self.checkpoint_path = checkpoint_path
         self.early_stopping_patience = early_stopping_patience
@@ -42,9 +40,16 @@ class Trainer:
 
         self.model.to(self.device)
 
-        # AMP components
-        self.scaler = torch.amp.GradScaler(
-            device=self.device, enabled=self.use_amp)
+        # AMP scaler
+        self.scaler = torch.amp.GradScaler(device=self.device, enabled=self.use_amp)
+
+        # Loss function(s)
+        if loss_fn is None:
+            self.loss_fn = [torch.nn.BCEWithLogitsLoss(), torch.nn.CrossEntropyLoss()]
+        elif isinstance(loss_fn, list):
+            self.loss_fn = loss_fn
+        else:
+            self.loss_fn = [loss_fn]
 
         # Live plot data
         self.train_losses = []
@@ -52,7 +57,7 @@ class Trainer:
 
         if self.plot_loss:
             plt.ion()
-            self.fig, self.ax = plt.subplots(nrows=1, ncols=1)
+            self.fig, self.ax = plt.subplots()
             self.train_line, = self.ax.plot([], [], label="Train Loss")
             # self.val_line, = self.ax.plot([], [], label="Val Loss")
             self.ax.set_xlabel("Steps")
@@ -67,59 +72,68 @@ class Trainer:
                 'model_state': self.model.state_dict(),
                 'optimizer_state': self.optimizer.state_dict(),
                 'best_val_loss': best_val_loss
-            }, self.checkpoint_path)  # ! seperate files per checkpoint?
+            }, self.checkpoint_path)
 
     def _validate(self):
         self.model.eval()
         total_loss = 0
-        total_correct = 0
+        # total_correct = 0
         total_samples = 0
-        all_preds = []
-        all_targets = []
+
+        num_heads = len(self.loss_fn)
+        all_preds = [[] for _ in range(num_heads)]
+        all_targets = [[] for _ in range(num_heads)]
 
         with torch.no_grad():
             for inputs, targets in self.val_loader:
+                inputs = inputs.to(self.device)
                 if not isinstance(targets, (list, tuple)):
                     targets = [targets.to(self.device)]
                 else:
-                    for i, t in enumerate(targets):
-                        targets[i] = t.to(self.device)
+                    targets = [t.to(self.device) for t in targets]
 
                 with torch.amp.autocast(str(self.device), enabled=self.use_amp):
                     outputs = self.model(inputs)
                     if not isinstance(outputs, (list, tuple)):
                         outputs = [outputs]
-                    losses = [self.loss_fn(o, t)
-                              for o, t in zip(outputs, targets)]
+
+                    losses = [lf(o, t) for lf, o, t in zip(self.loss_fn, outputs, targets)]
+
                 loss = sum(losses)
                 total_loss += loss.item() * inputs.size(0)
-                _, preds = torch.max(outputs, dim=1)
-                all_preds.extend(preds.cpu().numpy())
-                all_targets.extend(targets.cpu().numpy())
-                total_correct += (preds == targets).sum().item()
-                total_samples += targets.size(0)
+                total_samples += inputs.size(0)
+
+                for i, (output, target) in enumerate(zip(outputs, targets)):
+                    if isinstance(self.loss_fn[i], torch.nn.BCEWithLogitsLoss):
+                        preds = (torch.sigmoid(output) > 0.5).float()
+                    elif isinstance(self.loss_fn[i], torch.nn.CrossEntropyLoss):
+                        preds = torch.argmax(output, dim=1)
+                        if target.ndim == 2:
+                            target = torch.argmax(target, dim=1)
+                    else:
+                        preds = output  # fallback
+
+                    all_preds[i].append(preds.cpu())
+                    all_targets[i].append(target.cpu())
 
         avg_loss = total_loss / total_samples
-        accuracy = total_correct / total_samples
+        # accuracy = total_correct / total_samples
 
         if self.show_metrics:
-            precision, recall, f1, _ = precision_recall_fscore_support(
-                all_targets, all_preds, average='macro', zero_division=0
-            )
-            print(
-                f"Precision: {precision:.4f} | Recall: {recall:.4f} | F1 Score: {f1:.4f}")
-        else:
-            precision = recall = f1 = None
+            for i in range(num_heads):
+                preds = torch.cat(all_preds[i]).numpy()
+                targets = torch.cat(all_targets[i]).numpy()
 
-        return avg_loss, accuracy
+                average = 'macro' if isinstance(self.loss_fn[i], torch.nn.CrossEntropyLoss) else 'samples'
+                precision, recall, f1, _ = precision_recall_fscore_support(
+                    targets, preds, average=average, zero_division=0
+                )
+                print(f"[Head {i}] Precision: {precision:.4f} | Recall: {recall:.4f} | F1: {f1:.4f}")
+
+        return avg_loss, None
 
     def _update_plot(self):
-        self.train_line.set_data(
-            range(1, len(self.train_losses)+1), self.train_losses)
-        if self.val_losses:
-            self.val_line.set_data(
-                range(1, len(self.val_losses)+1), self.val_losses)
-
+        self.train_line.set_data(range(1, len(self.train_losses) + 1), self.train_losses)
         self.ax.relim()
         self.ax.autoscale_view()
         self.fig.canvas.draw()
@@ -133,10 +147,8 @@ class Trainer:
 
         for name, param in self.model.named_parameters():
             if param.grad is not None:
-                axes[0].hist(param.grad.detach().cpu().numpy(
-                ).flatten(), bins=100, alpha=0.5, label=name)
-            axes[1].hist(param.detach().cpu().numpy().flatten(),
-                         bins=100, alpha=0.5, label=name)
+                axes[0].hist(param.grad.detach().cpu().numpy().flatten(), bins=100, alpha=0.5, label=name)
+            axes[1].hist(param.detach().cpu().numpy().flatten(), bins=100, alpha=0.5, label=name)
 
         for ax in axes:
             ax.legend(fontsize='small', loc='upper right')
@@ -160,16 +172,16 @@ class Trainer:
                 if not isinstance(targets, (list, tuple)):
                     targets = [targets.to(self.device)]
                 else:
-                    for i, t in enumerate(targets):
-                        targets[i] = t.to(self.device)
+                    targets = [t.to(self.device) for t in targets]
 
                 self.optimizer.zero_grad()
+
                 with torch.amp.autocast(str(self.device), enabled=self.use_amp):
                     outputs = self.model(inputs)
                     if not isinstance(outputs, (list, tuple)):
                         outputs = [outputs]
-                    losses = [self.loss_fn(o, t)
-                              for o, t in zip(outputs, targets)]
+
+                    losses = [lf(o, t) for lf, o, t in zip(self.loss_fn, outputs, targets)]
 
                 loss = sum(losses)
                 self.scaler.scale(loss).backward()
@@ -179,7 +191,7 @@ class Trainer:
                 running_loss += loss.item() * inputs.size(0)
 
                 if self.plot_loss:
-                    self.train_losses.append(loss.detach().cpu().numpy())
+                    self.train_losses.append(loss.detach().cpu().item())
                     self._update_plot()
 
             train_loss = running_loss / len(self.train_loader.dataset)
@@ -187,11 +199,8 @@ class Trainer:
             print(f"[Epoch {epoch}] Train Loss: {train_loss:.4f}")
 
             if self.val_loader:
-                val_loss, val_acc = self._validate()
-                # if self.plot_loss:
-                #     self.val_losses.append(val_loss)
-                print(
-                    f"[Epoch {epoch}] Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.4f}")
+                val_loss, _ = self._validate()
+                print(f"[Epoch {epoch}] Val Loss: {val_loss:.4f}")
 
                 if self.scheduler:
                     self.scheduler.step(val_loss)
@@ -206,7 +215,6 @@ class Trainer:
                 if self.early_stopping_patience and patience_counter >= self.early_stopping_patience:
                     print("Early stopping triggered.")
                     break
-
             else:
                 self.val_losses.append(None)
 
@@ -219,20 +227,19 @@ class Trainer:
 
 
 if __name__ == "__main__":
-    # Usage:
     # trainer = Trainer(
-    #     model=model,
+    #     model=my_model,
     #     train_loader=train_loader,
     #     val_loader=val_loader,
     #     optimizer=optimizer,
-    #     scheduler=scheduler,
-    #     loss_fn=torch.nn.CrossEntropyLoss(),
-    #     num_epochs=10,
-    #     checkpoint_path='model.pt',
+    #     loss_fn=[
+    #         torch.nn.BCEWithLogitsLoss(),    # for head 1
+    #         torch.nn.CrossEntropyLoss()      # for head 2
+    #     ],
+    #     num_epochs=20,
+    #     checkpoint_path='checkpoint.pt',
     #     early_stopping_patience=5,
     #     use_amp=True,
     #     plot_loss=True
     # )
-
-    # trainer.train()
     pass
