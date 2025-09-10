@@ -27,7 +27,7 @@ class LSTM(nn.Module):
 
     def forward(self, x: Tensor) -> tuple[Tensor]:
         out, _ = self.lstm(x)  # out: (batch, seq_len, hidden)
-        last_out = out[:, -1, :]  # take last time step
+        out = out[:, -1, :]  # take last time step
 
         out = [fc(out) for fc in self.fc]
 

@@ -77,12 +77,14 @@ class Trainer:
     def _validate(self):
         self.model.eval()
         total_loss = 0
-        # total_correct = 0
         total_samples = 0
 
         num_heads = len(self.loss_fn)
         all_preds = [[] for _ in range(num_heads)]
         all_targets = [[] for _ in range(num_heads)]
+
+        correct_preds = [0] * num_heads
+        total_preds = [0] * num_heads
 
         with torch.no_grad():
             for inputs, targets in self.val_loader:
@@ -97,19 +99,41 @@ class Trainer:
                     if not isinstance(outputs, (list, tuple)):
                         outputs = [outputs]
 
-                    losses = [lf(o, t) for lf, o, t in zip(self.loss_fn, outputs, targets)]
+                    # Preprocess targets for loss functions
+                    processed_targets = []
+                    for i, (lf, o, t) in enumerate(zip(self.loss_fn, outputs, targets)):
+                        if isinstance(lf, torch.nn.CrossEntropyLoss):
+                            if t.ndim == o.ndim:
+                                t = torch.argmax(t, dim=1)
+                            t = t.long()
+                        processed_targets.append(t)
+
+                    losses = [lf(o, t) for lf, o, t in zip(self.loss_fn, outputs, processed_targets)]
 
                 loss = sum(losses)
                 total_loss += loss.item() * inputs.size(0)
                 total_samples += inputs.size(0)
 
-                for i, (output, target) in enumerate(zip(outputs, targets)):
+                for i, (output, target) in enumerate(zip(outputs, processed_targets)):
                     if isinstance(self.loss_fn[i], torch.nn.BCEWithLogitsLoss):
                         preds = (torch.sigmoid(output) > 0.5).float()
+                        # Subset accuracy (strict multi-label)
+                        sample_correct = (preds == target).all(dim=1).float()  # [B]
+                        correct_preds[i] += sample_correct.sum().item()
+                        total_preds[i] += sample_correct.shape[0]
+
+                        # correct = (preds == target).float().sum().item()
+                        # total = target.numel()
+                        # correct_preds[i] += correct
+                        # total_preds[i] += total
+
                     elif isinstance(self.loss_fn[i], torch.nn.CrossEntropyLoss):
                         preds = torch.argmax(output, dim=1)
-                        if target.ndim == 2:
-                            target = torch.argmax(target, dim=1)
+                        correct = (preds == target).sum().item()
+                        total = target.size(0)
+                        correct_preds[i] += correct
+                        total_preds[i] += total
+
                     else:
                         preds = output  # fallback
 
@@ -117,20 +141,26 @@ class Trainer:
                     all_targets[i].append(target.cpu())
 
         avg_loss = total_loss / total_samples
-        # accuracy = total_correct / total_samples
 
+        # Metrics
         if self.show_metrics:
             for i in range(num_heads):
-                preds = torch.cat(all_preds[i]).numpy()
-                targets = torch.cat(all_targets[i]).numpy()
+                preds = torch.cat(all_preds[i])
+                targets = torch.cat(all_targets[i])
 
                 average = 'macro' if isinstance(self.loss_fn[i], torch.nn.CrossEntropyLoss) else 'samples'
                 precision, recall, f1, _ = precision_recall_fscore_support(
-                    targets, preds, average=average, zero_division=0
+                    targets.numpy(), preds.numpy(), average=average, zero_division=0
                 )
+
                 print(f"[Head {i}] Precision: {precision:.4f} | Recall: {recall:.4f} | F1: {f1:.4f}")
 
+                if total_preds[i] > 0:
+                    accuracy = correct_preds[i] / total_preds[i]
+                    print(f"[Head {i}] Accuracy: {accuracy:.4f}")
+
         return avg_loss, None
+
 
     def _update_plot(self):
         self.train_line.set_data(range(1, len(self.train_losses) + 1), self.train_losses)

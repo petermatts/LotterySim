@@ -21,8 +21,8 @@ class LotteryDataset(Dataset):
         return (
             data, 
             (
-                F.one_hot(data[:, :5].long(), self.dims[0]).sum(dim=1).float(),
-                data[:,5]
+                F.one_hot(data[:, :5][-1].long(), self.dims[0]).sum(dim=0).float(),
+                data[-1,-1].long()
             )
         )
 
