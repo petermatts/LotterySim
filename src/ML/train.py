@@ -116,16 +116,23 @@ class Trainer:
 
                 for i, (output, target) in enumerate(zip(outputs, processed_targets)):
                     if isinstance(self.loss_fn[i], torch.nn.BCEWithLogitsLoss):
-                        preds = (torch.sigmoid(output) > 0.5).float()
-                        # Subset accuracy (strict multi-label)
-                        sample_correct = (preds == target).all(dim=1).float()  # [B]
-                        correct_preds[i] += sample_correct.sum().item()
-                        total_preds[i] += sample_correct.shape[0]
+                        probs = torch.sigmoid(output)
+                        _, topki = torch.topk(probs, k=5, dim=1)  # ! 5 is hard coded
 
-                        # correct = (preds == target).float().sum().item()
+                        preds = torch.zeros_like(target, dtype=target.dtype, device=target.device).scatter_(1, topki, 1.0)
+
+                        # preds = (torch.sigmoid(output) > 0.1).float()
+                        # # Subset accuracy (strict multi-label)
+                        # sample_correct = (preds == target).all(dim=1).float()  # [B]
+                        # correct_preds[i] += sample_correct.sum().item()
+                        # total_preds[i] += sample_correct.shape[0]
+
+                        # correct = (preds == target).sum().item()
                         # total = target.numel()
-                        # correct_preds[i] += correct
-                        # total_preds[i] += total
+                        correct = ((preds == 1) & (target == 1)).sum().item()
+                        total = target.sum().item()
+                        correct_preds[i] += correct
+                        total_preds[i] += total
 
                     elif isinstance(self.loss_fn[i], torch.nn.CrossEntropyLoss):
                         preds = torch.argmax(output, dim=1)
@@ -160,7 +167,6 @@ class Trainer:
                     print(f"[Head {i}] Accuracy: {accuracy:.4f}")
 
         return avg_loss, None
-
 
     def _update_plot(self):
         self.train_line.set_data(range(1, len(self.train_losses) + 1), self.train_losses)

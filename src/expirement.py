@@ -11,8 +11,9 @@ from resources import getOptimizer
 # todo write a predict next draw function given a model
 
 if __name__ == "__main__":
-    ds_path = (Path(__file__).parent / "../data/Powerball/drawings.csv").resolve()
-    
+    ds_path = (Path(__file__).parent /
+               "../Data/Powerball/drawings.csv").resolve()
+
     from data.powerball import WHITEBALLS, REDBALLS
     dims = (WHITEBALLS+1, REDBALLS+1)
 
@@ -28,10 +29,10 @@ if __name__ == "__main__":
 
     machine = Trainer(
         model,
-        train_loader = train,
-        val_loader = val,
-        optimizer = getOptimizer("Adam", model),
-        num_epochs = 1,
+        train_loader=train,
+        val_loader=val,
+        optimizer=getOptimizer("Adam", model),
+        num_epochs=5,
         loss_fn=[nn.BCEWithLogitsLoss(), nn.CrossEntropyLoss()]
     )
 
